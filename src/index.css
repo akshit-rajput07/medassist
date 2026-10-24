@@ -1,1 +1,429 @@
 @import "tailwindcss";
+
+/* Dark mode is class-based so the toggle in the header can override the system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* Colours are CSS variables so light and dark mode only swap values.  */
+/* Red / amber / green are reserved for triage urgency, nothing else.  */
+/* ------------------------------------------------------------------ */
+:root {
+  color-scheme: light;
+  --c-page: #f1f4f2;
+  --c-surface: #ffffff;
+  --c-sunken: #e7ece9;
+  --c-ink: #14211f;
+  --c-muted: #526462;
+  --c-line: #d1dad6;
+  --c-brand: #0d5c54;
+  --c-brand-strong: #094640;
+  --c-on-brand: #ffffff;
+  --c-emergency: #b91c1c;
+  --c-consult: #f5b301;
+  --c-consult-ink: #2e2100;
+  --c-selfcare: #15803d;
+  --c-unclassified: #4d5e5b;
+  --c-focus: #0d5c54;
+}
+
+.dark {
+  color-scheme: dark;
+  --c-page: #0c1413;
+  --c-surface: #131f1d;
+  --c-sunken: #1a2926;
+  --c-ink: #e6eeec;
+  --c-muted: #9bafab;
+  --c-line: #283936;
+  --c-brand: #5cd1bf;
+  --c-brand-strong: #86e0d2;
+  --c-on-brand: #06201c;
+  --c-emergency: #d63a3a;
+  --c-consult: #f5b301;
+  --c-consult-ink: #2e2100;
+  --c-selfcare: #1a8a47;
+  --c-unclassified: #5b6c69;
+  --c-focus: #86e0d2;
+}
+
+@theme inline {
+  --font-sans: system-ui, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Noto Serif", Georgia, serif;
+  --color-page: var(--c-page);
+  --color-surface: var(--c-surface);
+  --color-sunken: var(--c-sunken);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-line: var(--c-line);
+  --color-brand: var(--c-brand);
+}
+
+/* Urgency colours are applied through one pair of variables per level. */
+[data-level="Emergency"] { --lv-bg: var(--c-emergency); --lv-fg: #ffffff; }
+[data-level="Medical Consultation"] { --lv-bg: var(--c-consult); --lv-fg: var(--c-consult-ink); }
+[data-level="General Guidance"] { --lv-bg: var(--c-selfcare); --lv-fg: #ffffff; }
+[data-level="Unclassified"] { --lv-bg: var(--c-unclassified); --lv-fg: #ffffff; }
+
+/* Component styles live in the components layer so Tailwind utilities in the JSX can override them. */
+@layer components {
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--c-page);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--c-brand) 28%, transparent); }
+
+.serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
+.muted { color: var(--c-muted); }
+.label { font-size: 0.8125rem; font-weight: 600; color: var(--c-muted); }
+
+/* ------------------------------------------------------------------ */
+/* Surfaces and buttons                                                */
+/* ------------------------------------------------------------------ */
+.panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 18px;
+}
+
+.divider { border: 0; border-top: 1px solid var(--c-line); margin: 0; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+}
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-primary { background: var(--c-brand); color: var(--c-on-brand); }
+.btn-primary:hover:not(:disabled) { background: var(--c-brand-strong); }
+
+.btn-quiet { background: transparent; color: var(--c-ink); border-color: var(--c-line); }
+.btn-quiet:hover:not(:disabled) { background: var(--c-sunken); }
+
+.btn-call { background: var(--c-emergency); color: #ffffff; font-size: 1.05rem; }
+.btn-call:hover { filter: brightness(1.1); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.icon-btn:hover { background: var(--c-sunken); }
+
+/* ------------------------------------------------------------------ */
+/* Status pills (header)                                               */
+/* ------------------------------------------------------------------ */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-selfcare); }
+.status[data-state="offline"] .status-dot { background: var(--c-consult); }
+
+/* ------------------------------------------------------------------ */
+/* Symptom input                                                       */
+/* ------------------------------------------------------------------ */
+.field-wrap { position: relative; }
+
+.field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 9.5rem;
+  padding: 1rem 4rem 1.1rem 1.05rem;
+  background: var(--c-page);
+  color: var(--c-ink);
+  border: 1.5px solid var(--c-line);
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  resize: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.field::placeholder { color: color-mix(in srgb, var(--c-muted) 75%, transparent); }
+.field:focus {
+  outline: none;
+  background: var(--c-surface);
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-brand) 20%, transparent);
+}
+
+.mic {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mic:hover:not(:disabled) { background: var(--c-sunken); }
+.mic:disabled { opacity: 0.4; cursor: not-allowed; }
+.mic[data-on="true"] { background: var(--c-emergency); border-color: var(--c-emergency); color: #ffffff; }
+.mic[data-on="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--c-emergency);
+  animation: ring 1.3s ease-out infinite;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+button.chip { cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; }
+button.chip:hover { background: var(--c-sunken); border-color: var(--c-muted); }
+
+.chip-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lv-bg, var(--c-muted)); flex: none; }
+.chip[data-negated="true"] { color: var(--c-muted); border-style: dashed; }
+.chip[data-negated="true"] .chip-text { text-decoration: line-through; }
+
+/* ------------------------------------------------------------------ */
+/* Segmented controls (severity, duration, region)                     */
+/* Real radio inputs underneath, so keyboard and screen readers work.  */
+/* ------------------------------------------------------------------ */
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: var(--c-sunken);
+  border-radius: 14px;
+}
+.seg-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.seg label, .pick { position: relative; display: block; }
+.seg input, .pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.seg span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--c-muted);
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.seg input:checked + span {
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 0 0 1px var(--c-line);
+}
+.seg input:focus-visible + span,
+.pick input:focus-visible + span { outline: 3px solid var(--c-focus); outline-offset: 2px; }
+
+.pick span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.3rem 1rem;
+  border: 1.5px solid var(--c-line);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--c-surface);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.pick input:checked + span {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: var(--c-on-brand);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ */
+/* The triage tag: the one memorable element                           */
+/* ------------------------------------------------------------------ */
+.tag {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 18px;
+  animation: tag-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tag[data-stale="true"] { opacity: 0.55; filter: saturate(0.6); transition: opacity 0.2s ease; }
+
+.tag-band {
+  background: var(--lv-bg);
+  color: var(--lv-fg);
+  padding: 1.15rem 1.35rem 1.7rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--lv-fg) 40%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lv-fg) 14%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* Perforated tear line with two punched notches */
+.tag-tear {
+  position: relative;
+  height: 0;
+  margin: 0 1.1rem;
+  border-top: 2px dashed color-mix(in srgb, var(--c-ink) 24%, transparent);
+  top: -1px;
+}
+.tag-tear::before,
+.tag-tear::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-page);
+}
+.tag-tear::before { left: calc(-1.1rem - 12px); }
+.tag-tear::after { right: calc(-1.1rem - 12px); }
+
+.tag-body { padding: 1.35rem 1.35rem 1.2rem; }
+
+.notice {
+  padding: 0.75rem 0.95rem;
+  border-left: 4px solid var(--lv-bg);
+  border-radius: 4px 12px 12px 4px;
+  background: var(--c-sunken);
+  font-size: 0.9375rem;
+}
+
+/* Legend rows in the empty state */
+.lv-row { padding: 0.15rem 0 0.15rem 1rem; border-left: 6px solid var(--lv-bg); }
+
+/* ------------------------------------------------------------------ */
+/* Small bits                                                          */
+/* ------------------------------------------------------------------ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 50;
+  transform: translateX(-50%);
+  padding: 0.65rem 1.1rem;
+  border-radius: 12px;
+  background: var(--c-ink);
+  color: var(--c-page);
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  animation: toast-in 0.2s ease-out;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -4rem;
+  z-index: 60;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus { top: 0.75rem; }
+
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion (only in response to something the user did)                  */
+/* ------------------------------------------------------------------ */
+@keyframes tag-in {
+  from { opacity: 0; transform: translateY(-10px) rotate(-0.6deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes ring {
+  from { opacity: 0.8; transform: scale(0.9); }
+  to { opacity: 0; transform: scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

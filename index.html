@@ -2,12 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>MedAssist | Offline symptom checker and triage advisor</title>
+    <meta name="description" content="MedAssist is an offline-first symptom checker that sorts symptoms into emergency, see-a-doctor or self-care guidance. It runs entirely on your device." />
+    <meta name="theme-color" content="#f1f4f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c1413" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>medassist</title>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script>
+      // Apply the saved or system theme before first paint to avoid a light flash in dark mode.
+      try {
+        var saved = localStorage.getItem('medassist-theme');
+        var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>MedAssist needs JavaScript to run. Please enable it in your browser.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
